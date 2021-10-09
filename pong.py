@@ -13,31 +13,43 @@ if player_a is None or player_a == "":
     player_a = "Player A"
 player_b = wn.textinput("Pong by Dave", "Player B: Your name or bot for computer player?")
 if player_b is None or player_b == "":
-    player_B = "Player B"
-rounds = wn.textinput("Pong by Dave", "How many rounds to win?")
+    player_b = "Player B"
+
+# bot_mode ist True falls player_b "bot" heisst sonst False. Dann kann Player A sein Paddle anpassen
+bot_mode = (player_b == "bot")
+bot_difference = 50
+if bot_mode:
+    difficulty = wn.numinput("Pong by Dave", "Bot mode: Paddle Size Player A (1=easy, 2=normal, 3=hard)?",
+                                default=2, minval=1, maxval=3)
+    paddle_a_size = 5 if difficulty == 3 else 7 if difficulty == 2 else 9
+    paddle_b_size = 5 if difficulty == 3 else 4 if difficulty == 2 else 4
+else:
+    paddle_a_size = 5
+    paddle_b_size = 5
+
+rounds = wn.numinput("Pong by Dave", "How many rounds to win? (Default: 3)", default=3)
 if rounds is None or rounds == "":
     rounds = 3
-else:
-    rounds = int(rounds)
-max_speed = wn.textinput("Pong by Dave", "max speed?")
+start_speed = wn.numinput("Pong by Dave", "start speed? (Default: 1.5)", default=1.5, minval=0.5, maxval=3)
+if start_speed is None or start_speed == "":
+    start_speed = 1.5
+
+max_speed = wn.numinput("Pong by Dave", "max speed? (Default: 3)", default=3, minval=0.5, maxval=10)
 if max_speed is None or max_speed == "":
     max_speed = 3
-else:
-    max_speed = float(max_speed)
 
-# bot_mode ist True falls player_b "bot" heisst sonst False
-bot_mode = (player_b == "bot")
-bot_difference = 70
+if start_speed > max_speed:
+    max_speed = start_speed
 
 # Score
 score_a = 0
 score_b = 0
 
 # Werte zur Ballbewegung
-start_speed = 0.5
 speed_up = 0.1
 dir_x = 1
 dir_y = 1
+
 
 # Funktion um die Paddles neu zu setzen
 def place_paddles():
@@ -45,6 +57,7 @@ def place_paddles():
     global paddle_b
     paddle_a.goto(-350, 0)
     paddle_b.goto(350, 0)
+
 
 # Funktion um den Ball neu zu starten
 def restart_ball():
@@ -55,6 +68,7 @@ def restart_ball():
     ball.color("black")
     ball.dx = speed * dir_x
     ball.dy = speed * dir_y
+
 
 # Funktion um das Spiel neu zu starten
 def restart():
@@ -76,33 +90,38 @@ def restart():
     restart_ball()
     place_paddles()
 
+
 # Funktion um das linke Paddle hoch zu bewegen
 def paddle_a_up():
     y = paddle_a.ycor()
     if y < 250:
-        y += 40
+        y += 10 * paddle_a_size
     paddle_a.sety(y)
+
 
 # Funktion um das linke Paddle runter zu bewegen
 def paddle_a_down():
     y = paddle_a.ycor()
     if y > -250:
-        y -= 40
+        y -= 10 * paddle_a_size
     paddle_a.sety(y)
+
 
 # Funktion um das rechte Paddle hoch zu bewegen
 def paddle_b_up():
     y = paddle_b.ycor()
     if y < 250:
-        y += 40
+        y += 10 * paddle_b_size
     paddle_b.sety(y)
+
 
 # Funktion um das rechte Paddle runter zu bewegen
 def paddle_b_down():
     y = paddle_b.ycor()
     if y > -250:
-        y -= 40
+        y -= 10 * paddle_b_size
     paddle_b.sety(y)
+
 
 # Ball erzeugen
 ball = turtle.Turtle()
@@ -118,7 +137,7 @@ paddle_a = turtle.Turtle()
 paddle_a.speed(0)
 paddle_a.shape("square")
 paddle_a.color("blue")
-paddle_a.shapesize(stretch_wid=5, stretch_len=1)
+paddle_a.shapesize(stretch_wid=paddle_a_size, stretch_len=1)
 paddle_a.penup()
 
 # Paddle B erzeugen
@@ -126,7 +145,7 @@ paddle_b = turtle.Turtle()
 paddle_b.speed(0)
 paddle_b.shape("square")
 paddle_b.color("red")
-paddle_b.shapesize(stretch_wid=5, stretch_len=1)
+paddle_b.shapesize(stretch_wid=paddle_b_size, stretch_len=1)
 paddle_b.penup()
 
 # Beide Paddles erstmalig platzieren
@@ -201,8 +220,9 @@ while True:
                           font=("Courier", 24, "normal"))
 
     # Check ob der Ball auf das rechte Paddle trifft
-    if (ball.xcor() > 340 and ball.xcor() < 350) and (
-            ball.ycor() < paddle_b.ycor() + 50 and ball.ycor() > paddle_b.ycor() - 50):
+    if ((ball.xcor() > 340 and ball.xcor() < 350)
+            and (ball.ycor() < paddle_b.ycor() + paddle_b_size * 10 + 2.5)
+            and (ball.ycor() > paddle_b.ycor() - paddle_b_size * 10 - 2.5)):
         ball.setx(340)
         if speed < max_speed:
             speed += speed_up
@@ -211,10 +231,10 @@ while True:
         ball.dy = speed * dir_y
         ball.color("red")
 
-
     # Check ob der Ball auf das linke Paddle trifft
-    if (ball.xcor() < -340 and ball.xcor() > -350) and (
-            ball.ycor() < paddle_a.ycor() + 50 and ball.ycor() > paddle_a.ycor() - 50):
+    if ((ball.xcor() < -340 and ball.xcor() > -350)
+            and (ball.ycor() < paddle_a.ycor() + paddle_a_size * 10 + 2.5)
+            and (ball.ycor() > paddle_a.ycor() - paddle_a_size * 10 - 2.5)):
         ball.setx(-340)
         if speed < max_speed:
             speed += speed_up
